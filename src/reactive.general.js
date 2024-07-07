@@ -101,7 +101,7 @@ reactv=(function(){
 		render:function(element, container){
 			render_int(element, container);
 		},
-		addcomponent:function(tag,templateJSX,callback){
+		addcomp:function(tag,templateJSX,callback){
 			let template = genrl.getCreate('template');
 			let fetchapi=genrl.ajaxapi;
 			fetchapi
