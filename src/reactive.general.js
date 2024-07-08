@@ -16,6 +16,11 @@
 */
 
 reactv=(function(){
+	// Función interna para renderizar JSX en el DOM
+	function render_int(elemento, containero){
+	  containero.appendChild(elemento);
+	};
+
 	class Observer {
 	  constructor(subject) {
 	    subject.registerObserver(this);
@@ -55,6 +60,24 @@ reactv=(function(){
 	    this._observers.forEach(observer => observer.notify(data));
 	  }
 	};
+
+// Clase Componente con estado inmutable
+class Componente {
+  constructor(props) {
+    this.props = props;
+    this._estado = {};
+  }
+
+  setState(nuevoEstado) {
+    this._estado = { ...this._estado, ...nuevoEstado };
+    this.render();
+  }
+  
+  render(element,callback) {
+  	render_int(element, container);
+    callback();
+  }
+}
 	// Función para crear elementos en el DOM a partir del JSX
 	function createElement(tag, props, ...children) {
 	  const element = document.createElement(tag);
@@ -78,11 +101,6 @@ reactv=(function(){
 	    }
 	  });
 	  return element;
-	};
-
-	// Función interna para renderizar JSX en el DOM
-	function render_int(elemento, containero){
-	  containero.appendChild(elemento);
 	};
 
 	return{
