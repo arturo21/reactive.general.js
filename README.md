@@ -1,49 +1,45 @@
-# 🧬 reactv.general.js
+<h1 align="center">🧬 reactv.general.js</h1>
 
-**reactv.general.js** es un plugin avanzado para [general.JS](https://github.com/arturo21/generaljs) que permite crear componentes altamente reactivos, funcionales y auditables con una arquitectura moderna y extensible.
+<p align="center">
+  <strong>Componentes reactivos, funcionales y auditables para <a href="https://github.com/arturo21/generaljs">general.JS</a></strong><br>
+  <em>Modularidad, reactividad profunda y comunicación entre componentes sin dependencias externas</em>
+</p>
 
-Diseñado para desarrolladores que buscan control total sobre el estado, el DOM y la comunicación entre componentes, `reactv` combina lo mejor de los patrones observables, hooks funcionales y renderizado condicional, todo dentro del ecosistema minimalista de general.JS.
-
----
-
-## ✨ Características
-
-- 🔁 **Reactividad profunda con Proxy**  
-  Detecta cambios en objetos anidados y actualiza automáticamente los componentes.
-
-- ⚛️ **Hooks funcionales (`useState`, `useEffect`)**  
-  Lógica declarativa y efectos controlados en componentes funcionales.
-
-- 🎯 **Render condicional inteligente**  
-  Evita renders innecesarios comparando estado y props.
-
-- 📡 **Event Bus (`emit`, `on`)**  
-  Comunicación entre componentes sin acoplamiento directo.
-
-- 🎨 **Scoped styles**  
-  Encapsula estilos por componente sin colisiones globales.
-
-- 🧩 **Virtual DOM fragment support**  
-  Renderiza múltiples nodos sin contenedores artificiales.
-
-- 🧠 **Context API**  
-  Comparte datos entre componentes sin prop drilling.
-
-- 🧪 **Lifecycle hooks (`onMount`, `onUpdate`, `onDestroy`)**  
-  Control total del ciclo de vida de componentes de clase.
-
-- 💾 **Persistencia de estado**  
-  Guarda y recupera estado desde `localStorage`.
-
-- 🧱 **Componentes funcionales (`defineFunctional`)**  
-  Define UI reactiva sin clases, con render directo.
-
-- 🛠️ **Devtools integrados (`debug`)**  
-  Inspecciona estado, eventos y componentes activos.
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.1.0-blue.svg" alt="Versión estable">
+  <img src="https://img.shields.io/badge/status-activo-brightgreen.svg" alt="Estado del proyecto">
+  <img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="Licencia MIT">
+</p>
 
 ---
 
-## 🚀 Instalación
+## 🚀 ¿Qué es reactv.general.js?
+
+**reactv** es un plugin avanzado para [general.JS](https://github.com/arturo21/generaljs) que permite crear interfaces reactivas con componentes funcionales o de clase, gestionando estado, efectos, estilos y eventos de forma modular y extensible.
+
+Ideal para desarrolladores que buscan control total sobre el DOM, el estado y la trazabilidad de sus componentes sin depender de frameworks pesados.
+
+---
+
+## ✨ Características destacadas
+
+| 🔧 Funcionalidad | ✅ Descripción |
+|------------------|----------------|
+| 🔁 Reactividad profunda | Detecta cambios en objetos anidados con `Proxy` |
+| ⚛️ Hooks funcionales | `useState` y `useEffect` para lógica declarativa |
+| 🎯 Render condicional | Evita renders innecesarios comparando estado y props |
+| 📡 Event Bus | Comunicación entre componentes con `emit` y `on` |
+| 🎨 Scoped styles | Estilos encapsulados por componente |
+| 🧩 Fragmentos DOM | Renderiza múltiples nodos sin contenedores artificiales |
+| 🧠 Context API | Comparte datos entre componentes sin prop drilling |
+| 🧪 Lifecycle hooks | `onMount`, `onUpdate`, `onDestroy` para componentes de clase |
+| 💾 Persistencia | Guarda y recupera estado desde `localStorage` |
+| 🧱 Componentes funcionales | Define UI reactiva sin clases |
+| 🛠️ Devtools integrados | Inspecciona estado, eventos y componentes activos |
+
+---
+
+## 📦 Instalación
 
 ```bash
 http://cdn.underdevelopment.work/generaljs/reactive.general.min.js
