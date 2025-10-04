@@ -3,5 +3,8 @@
     "fs": "^0.0.1-security",
     "path": "^0.12.7",
     "webpack": "^5.92.1"
+  },
+  "devDependencies": {
+    "webpack-cli": "^5.1.4"
   }
 }
