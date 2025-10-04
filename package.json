@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "babel-loader": "^10.0.0",
     "fs": "^0.0.1-security",
     "path": "^0.12.7",
     "webpack": "^5.92.1"

@@ -9,11 +9,11 @@ var config = module.exports = {
 	devtool: 'source-map',
 	mode:"production",
 	entry: {
-		app: ["./main.js"]
+		app: ["./reactive.general.js"]
 	},
 	output: {
 		path: path.resolve(__dirname, 'dist'),
-    	filename: 'general.min.js',
+    	filename: 'reactive.general.min.js',
     	publicPath: '/'
 	},
 	module:{
