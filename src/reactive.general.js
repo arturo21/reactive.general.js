@@ -1,5 +1,4 @@
 reactv = (function () {
-  // 🔔 Event Bus
   const eventBus = {
     listeners: {},
     emit(event, data) {
@@ -11,16 +10,22 @@ reactv = (function () {
     }
   };
 
-  // 🧠 Context API
   const contextStore = {};
+  const pluginRegistry = {};
+  let testMode = false;
+
   function createContext(key, value) {
     contextStore[key] = value;
   }
+
   function useContext(key) {
     return contextStore[key];
   }
 
-  // 🧠 Proxy reactivo profundo
+  function usePlugin(name, fn) {
+    pluginRegistry[name] = fn;
+  }
+
   function createReactiveState(initialState, onChange) {
     const handler = {
       get(target, prop) {
@@ -38,7 +43,6 @@ reactv = (function () {
     return new Proxy(initialState, handler);
   }
 
-  // 📡 Observer
   class Observer {
     constructor(subject) {
       subject.registerObserver(this);
@@ -52,7 +56,6 @@ reactv = (function () {
     }
   }
 
-  // 🧠 Subject con Proxy
   class Subject {
     constructor(state) {
       this._observers = [];
@@ -77,7 +80,6 @@ reactv = (function () {
     }
   }
 
-  // 🧩 Componente base
   class Componente {
     constructor(props = {}, container = null) {
       this.props = props;
@@ -114,7 +116,6 @@ reactv = (function () {
     onDestroy() {}
   }
 
-  // 🧪 Funciones funcionales estilo React
   function useState(initialValue) {
     let value = initialValue;
     const subscribers = [];
@@ -137,7 +138,19 @@ reactv = (function () {
     };
   }
 
-  // 🏗️ createElement mejorado
+  function useMemo(fn, deps = []) {
+    let prevDeps = [];
+    let cached;
+    return function runMemo() {
+      const changed = deps.some((dep, i) => dep !== prevDeps[i]);
+      if (changed) {
+        cached = fn();
+        prevDeps = [...deps];
+      }
+      return cached;
+    };
+  }
+
   function createElement(tag, props = {}, ...children) {
     const element = document.createElement(tag);
     for (let prop in props) {
@@ -155,30 +168,25 @@ reactv = (function () {
     return element;
   }
 
-  // 🧩 Fragmentos
   function createFragment(...children) {
     const fragment = document.createDocumentFragment();
     children.forEach(child => fragment.appendChild(child));
     return fragment;
   }
 
-  // 🎨 Scoped styles
   function applyScopedStyle(cssText, container) {
     const style = document.createElement('style');
     style.textContent = cssText;
     container.appendChild(style);
   }
 
-  // 🔧 Render interno
   function render_int(elemento, containero) {
     containero.innerHTML = '';
     containero.appendChild(elemento);
   }
 
-  // 🗂️ Estado global compartido
   const store = new Subject({});
 
-  // 🧪 Devtools
   function debug() {
     console.table({
       state: store.getState(),
@@ -187,7 +195,6 @@ reactv = (function () {
     });
   }
 
-  // 💾 Persistencia
   function saveState(key = 'reactv_state') {
     localStorage.setItem(key, JSON.stringify(store.getState()));
   }
@@ -197,7 +204,10 @@ reactv = (function () {
     if (data) store.setState(JSON.parse(data));
   }
 
-  // 🧱 Componentes funcionales
+  function snapshotState() {
+    return JSON.parse(JSON.stringify(store.getState()));
+  }
+
   function defineFunctional(renderFn, container) {
     const [getState, setState, subscribe] = useState({});
     subscribe(() => {
@@ -207,6 +217,13 @@ reactv = (function () {
     setState(getState());
   }
 
+  function suspense(loaderFn, { fallback }) {
+    fallback && render_int(fallback, document.body);
+    loaderFn().then(component => {
+      render_int(component, document.body);
+    });
+  }
+
   return {
     Componente,
     createElement,
@@ -214,12 +231,16 @@ reactv = (function () {
     applyScopedStyle,
     useState,
     useEffect,
+    useMemo,
     defineFunctional,
     createContext,
     useContext,
+    usePlugin,
     debug,
     saveState,
     loadState,
+    snapshotState,
+    suspense,
 
     register(tag, webcomp) {
       window.customElements.define(tag, webcomp);
@@ -230,7 +251,7 @@ reactv = (function () {
     },
     setState(valor) {
       store.setState(valor);
-      genrl.log("Estado actualizado:", valor);
+      if (!testMode) genrl.log("Estado actualizado:", valor);
     },
 
     bindComponent(componentInstance) {
@@ -257,6 +278,11 @@ reactv = (function () {
     },
 
     emit: eventBus.emit.bind(eventBus),
-    on: eventBus.on.bind(eventBus)
+    on: eventBus.on.bind(eventBus),
+
+    testMode: {
+      enable() { testMode = true; },
+      disable() { testMode = false; }
+    }
   };
 })();
