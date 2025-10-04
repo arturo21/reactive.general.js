@@ -46,4 +46,4 @@ Diseñado para desarrolladores que buscan control total sobre el estado, el DOM 
 ## 🚀 Instalación
 
 ```bash
-http://cdn.underdevelopment.work/generaljs/rective.general.min.js
+http://cdn.underdevelopment.work/generaljs/reactive.general.min.js
