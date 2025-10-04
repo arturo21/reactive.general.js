@@ -1,36 +1,146 @@
-reactv = (function () {
-  const eventBus = {
-    listeners: {},
-    emit(event, data) {
-      (this.listeners[event] || []).forEach(fn => fn(data));
-    },
-    on(event, callback) {
-      if (!this.listeners[event]) this.listeners[event] = [];
-      this.listeners[event].push(callback);
-    }
-  };
-
+window.reactv = (() => {
+  const eventBus = { listeners: {} };
   const contextStore = {};
   const pluginRegistry = {};
   let testMode = false;
 
-  function createContext(key, value) {
-    contextStore[key] = value;
+  // 🔁 Event Bus
+  const emit = (event, data) => (eventBus.listeners[event] || []).forEach(fn => fn(data));
+  const on = (event, fn) => {
+    eventBus.listeners[event] = eventBus.listeners[event] || [];
+    eventBus.listeners[event].push(fn);
+  };
+
+  // 🧠 Context API
+  const createContext = (key, value) => (contextStore[key] = value);
+  const useContext = key => contextStore[key];
+
+  // 🧬 Plugin system
+  const usePlugin = (name, fn) => (pluginRegistry[name] = fn);
+
+  // ⚛️ Hooks
+  function useState(initial) {
+    let value = initial;
+    const subscribers = [];
+    const setValue = newVal => {
+      value = newVal;
+      subscribers.forEach(fn => fn(value));
+    };
+    const subscribe = fn => subscribers.push(fn);
+    return [() => value, setValue, subscribe];
   }
 
-  function useContext(key) {
-    return contextStore[key];
+  function useEffect(callback, deps = []) {
+    let prevDeps = [];
+    return () => {
+      const changed = deps.some((d, i) => d !== prevDeps[i]);
+      if (changed) {
+        callback();
+        prevDeps = [...deps];
+      }
+    };
   }
 
-  function usePlugin(name, fn) {
-    pluginRegistry[name] = fn;
+  function useMemo(fn, deps = []) {
+    let prevDeps = [];
+    let cached;
+    return () => {
+      const changed = deps.some((d, i) => d !== prevDeps[i]);
+      if (changed) {
+        cached = fn();
+        prevDeps = [...deps];
+      }
+      return cached;
+    };
   }
 
+  // JSX support
+	function jsx(tag, props, ...children) {
+	  return reactv.createElement(tag, props ?? {}, ...children);
+	}
+
+  // 🧩 Element creation
+	function createElement(tag, props = {}, ...children) {
+	  const el = document.createElement(tag);
+
+	  // Protege contra props nulos
+	  const safeProps = props || {};
+
+	  for (const [key, value] of Object.entries(safeProps)) {
+	    if (key.startsWith('on') && typeof value === 'function') {
+	      el.addEventListener(key.slice(2).toLowerCase(), value);
+	    } else {
+	      el.setAttribute(key, value);
+	    }
+	  }
+
+	  for (const child of children.flat()) {
+	    el.appendChild(
+	      typeof child === 'string' || typeof child === 'number'
+	        ? document.createTextNode(String(child))
+	        : child
+	    );
+	  }
+
+	  return el;
+	}
+  function createFragment(...children) {
+    const frag = document.createDocumentFragment();
+    children.forEach(child => frag.appendChild(child));
+    return frag;
+  }
+
+  // 🎨 Scoped styles
+  function applyScopedStyle(css, container) {
+    const style = document.createElement("style");
+    style.textContent = css;
+    container.appendChild(style);
+  }
+
+  // 🧱 Functional component
+  function defineFunctional(renderFn, container) {
+    const [getState, setState, subscribe] = useState({});
+    subscribe(() => {
+      const el = renderFn(getState(), setState);
+      container.innerHTML = "";
+      container.appendChild(el);
+    });
+    setState(getState());
+  }
+
+  // 💾 Persistence
+  const saveState = (key = "reactv_state") => {
+    localStorage.setItem(key, JSON.stringify(store.getState()));
+  };
+  const loadState = (key = "reactv_state") => {
+    const data = localStorage.getItem(key);
+    if (data) store.setState(JSON.parse(data));
+  };
+  const snapshotState = () => JSON.parse(JSON.stringify(store.getState()));
+
+  // 🧪 Suspense
+  function suspense(loaderFn, { fallback }) {
+    fallback && render_int(fallback, document.body);
+    loaderFn().then(component => {
+      render_int(component, document.body);
+    });
+  }
+
+  // 🛠️ Devtools
+  function debug() {
+    console.table({
+      state: store.getState(),
+      events: Object.keys(eventBus.listeners),
+      components: document.querySelectorAll("[data-reactv]")
+    });
+  }
+
+  // 🔁 Reactive store
   function createReactiveState(initialState, onChange) {
     const handler = {
       get(target, prop) {
         const value = target[prop];
-        return typeof value === 'object' && value !== null
+        return typeof value === "object" && value !== null
           ? new Proxy(value, handler)
           : value;
       },
@@ -48,18 +158,18 @@ reactv = (function () {
       subject.registerObserver(this);
       this.subscribers = [];
     }
-    subscribe(subscriber) {
-      this.subscribers.push(subscriber);
+    subscribe(fn) {
+      this.subscribers.push(fn);
     }
     notify(data) {
-      this.subscribers.forEach(subscriber => subscriber(data));
+      this.subscribers.forEach(fn => fn(data));
     }
   }
 
   class Subject {
     constructor(state) {
       this._observers = [];
-      this._state = createReactiveState(state, (newState) => {
+      this._state = createReactiveState(state, newState => {
         this.notifyObservers(newState);
       });
     }
@@ -102,7 +212,7 @@ reactv = (function () {
     }
 
     template(estado, props) {
-      return createElement('div', {}, `Estado: ${JSON.stringify(estado)}`);
+      return createElement("div", {}, `Estado: ${JSON.stringify(estado)}`);
     }
 
     render() {
@@ -116,115 +226,15 @@ reactv = (function () {
     onDestroy() {}
   }
 
-  function useState(initialValue) {
-    let value = initialValue;
-    const subscribers = [];
-    const setValue = (newVal) => {
-      value = newVal;
-      subscribers.forEach(fn => fn(value));
-    };
-    const subscribe = (fn) => subscribers.push(fn);
-    return [() => value, setValue, subscribe];
-  }
-
-  function useEffect(callback, deps = []) {
-    let prevDeps = [];
-    return function runEffect() {
-      const changed = deps.some((dep, i) => dep !== prevDeps[i]);
-      if (changed) {
-        callback();
-        prevDeps = [...deps];
-      }
-    };
-  }
-
-  function useMemo(fn, deps = []) {
-    let prevDeps = [];
-    let cached;
-    return function runMemo() {
-      const changed = deps.some((dep, i) => dep !== prevDeps[i]);
-      if (changed) {
-        cached = fn();
-        prevDeps = [...deps];
-      }
-      return cached;
-    };
-  }
-
-  function createElement(tag, props = {}, ...children) {
-    const element = document.createElement(tag);
-    for (let prop in props) {
-      if (prop.startsWith('on') && typeof props[prop] === 'function') {
-        element.addEventListener(prop.substring(2).toLowerCase(), props[prop]);
-      } else if (prop === 'className') {
-        element.className = props[prop];
-      } else {
-        element.setAttribute(prop, props[prop]);
-      }
-    }
-    children.forEach(child => {
-      element.appendChild(typeof child === 'string' ? document.createTextNode(child) : child);
-    });
-    return element;
-  }
-
-  function createFragment(...children) {
-    const fragment = document.createDocumentFragment();
-    children.forEach(child => fragment.appendChild(child));
-    return fragment;
-  }
-
-  function applyScopedStyle(cssText, container) {
-    const style = document.createElement('style');
-    style.textContent = cssText;
-    container.appendChild(style);
-  }
-
-  function render_int(elemento, containero) {
-    containero.innerHTML = '';
-    containero.appendChild(elemento);
+  function render_int(element, container) {
+    container.innerHTML = "";
+    container.appendChild(element);
   }
 
   const store = new Subject({});
 
-  function debug() {
-    console.table({
-      state: store.getState(),
-      events: Object.keys(eventBus.listeners),
-      components: document.querySelectorAll('[data-reactv]')
-    });
-  }
-
-  function saveState(key = 'reactv_state') {
-    localStorage.setItem(key, JSON.stringify(store.getState()));
-  }
-
-  function loadState(key = 'reactv_state') {
-    const data = localStorage.getItem(key);
-    if (data) store.setState(JSON.parse(data));
-  }
-
-  function snapshotState() {
-    return JSON.parse(JSON.stringify(store.getState()));
-  }
-
-  function defineFunctional(renderFn, container) {
-    const [getState, setState, subscribe] = useState({});
-    subscribe(() => {
-      const el = renderFn(getState(), setState);
-      render_int(el, container);
-    });
-    setState(getState());
-  }
-
-  function suspense(loaderFn, { fallback }) {
-    fallback && render_int(fallback, document.body);
-    loaderFn().then(component => {
-      render_int(component, document.body);
-    });
-  }
-
   return {
+    jsx,
     Componente,
     createElement,
     createFragment,
@@ -241,48 +251,24 @@ reactv = (function () {
     loadState,
     snapshotState,
     suspense,
-
-    register(tag, webcomp) {
-      window.customElements.define(tag, webcomp);
-    },
-
-    getState() {
-      return store.getState();
-    },
-    setState(valor) {
+    emit,
+    on,
+    getState: () => store.getState(),
+    setState: valor => {
       store.setState(valor);
       if (!testMode) genrl.log("Estado actualizado:", valor);
     },
-
-    bindComponent(componentInstance) {
+    bindComponent: instance => {
       const observer = new Observer(store);
-      observer.subscribe(data => componentInstance.setState(data));
+      observer.subscribe(data => instance.setState(data));
     },
-
-    render(element, container) {
-      render_int(element, container);
-    },
-
-    addcomp(tag, templateJSX, callback) {
-      if (!tag || !templateJSX) {
-        genrl.log("addcomp requiere tag y templateJSX");
-        return;
-      }
-      const template = genrl.getCreate('template');
-      genrl.ajaxapi.get(templateJSX)
-        .then(data => {
-          template.innerHTML = data;
-          if (typeof callback === "function") callback(template, data);
-        })
-        .catch(e => genrl.log("Error al cargar template:", e));
-    },
-
-    emit: eventBus.emit.bind(eventBus),
-    on: eventBus.on.bind(eventBus),
-
+    render: render_int,
     testMode: {
-      enable() { testMode = true; },
-      disable() { testMode = false; }
+      enable: () => (testMode = true),
+      disable: () => (testMode = false)
     }
   };
 })();
+externals: {
+  reactv: 'reactv'
+}

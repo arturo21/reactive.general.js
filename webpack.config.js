@@ -55,10 +55,24 @@ var config = module.exports = {
 				loader: "css-loader"
 			},
 			{
-		    	test: /\.(js)$/,
-		    	exclude: /node_modules/,
-		    	use: ['babel-loader']
-			}
+	        test: /\.(js|jsx)$/, // permite .js y .jsx
+	        exclude: /node_modules/,
+	        use: {
+	          loader: 'babel-loader',
+	          options: {
+	            presets: ['@babel/preset-env'],
+	            plugins: [
+	              ['@babel/plugin-transform-react-jsx', { pragma: 'reactv.jsx' }]
+	            ]
+	          }
+	        }
+	      }
 		]
 	},
+  resolve: {
+    extensions: ['.js', '.jsx']
+  },
+  externals: {
+    reactv: 'reactv' // indica que reactv está disponible globalmente
+  }
 };

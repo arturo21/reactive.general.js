@@ -42,7 +42,41 @@ Diseñado para desarrolladores que buscan control total sobre el DOM, el estado 
 | 🧪 Modo de prueba        | Simula eventos y renders sin afectar el DOM real |
 
 ---
+## 📦 Changelog
 
+### v2.0.0 — Reimplementación con JSX y mejoras estructurales
+
+- 🔁 Reescrito completamente usando JSX con el pragma personalizado `reactv.jsx`
+- 🧠 Integración con Babel y Webpack para compilar JSX en tiempo de desarrollo
+- 🧩 Migración de `createElement` a `reactv.jsx(...)` para una sintaxis más declarativa
+- 🎨 Estilos encapsulados aplicados con `applyScopedStyle` directamente al contenedor
+- 💾 Persistencia automática del estado `count` en `localStorage` usando `reactv.saveState`
+- 📡 Emisión de eventos `contador:cambio` cada vez que el contador se actualiza
+- 📢 Impresión dinámica de mensajes en pantalla (`#mensaje`) para confirmar cambios
+- 🧪 Protección contra errores comunes (`props === null`, nodos inválidos, contenedores ausentes)
+- 🔐 Validación de existencia del contenedor antes de renderizar
+- 🧱 Compatible con renderizado modular y extensible para futuras mejoras
+
+---
+
+### v1.1.0 — Versión clásica con `createElement` y eventos
+
+- ✅ Componente funcional con `reactv.defineFunctional`
+- 💾 Persistencia básica con `loadState` y `saveState`
+- 📡 Emisión de eventos `contador:cambio`
+- 🧩 Estilos encapsulados con `applyScopedStyle`
+- 🧪 Corrección de `setState` en el logger para evitar mutaciones directas
+
+---
+
+### v1.0.0 — Versión inicial
+
+- 🧮 Contador funcional con incremento, decremento y reset
+- 💾 Guardado en `localStorage` bajo la clave `contador_persistente`
+- 📡 Emisión de eventos para sincronización entre componentes
+- 📜 Logger de eventos que escucha `contador:cambio` y muestra historial
+
+---
 ## 📦 Instalación
 
 ```bash
