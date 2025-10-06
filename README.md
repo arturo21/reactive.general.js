@@ -42,42 +42,70 @@ Diseñado para desarrolladores que buscan control total sobre el DOM, el estado 
 | 🧪 Modo de prueba        | Simula eventos y renders sin afectar el DOM real |
 
 ---
-## 📦 Changelog
+# 📦 Changelog — reactive.general.js
 
-### v2.0.0 — Reimplementación con JSX y mejoras estructurales
-
-- 🔁 Reescrito completamente usando JSX con el pragma personalizado `reactv.jsx`
-- 🧠 Integración con Babel y Webpack para compilar JSX en tiempo de desarrollo
-- 🧩 Migración de `createElement` a `reactv.jsx(...)` para una sintaxis más declarativa
-- 🎨 Estilos encapsulados aplicados con `applyScopedStyle` directamente al contenedor
-- 💾 Persistencia automática del estado `count` en `localStorage` usando `reactv.saveState`
-- 📡 Emisión de eventos `contador:cambio` cada vez que el contador se actualiza
-- 📢 Impresión dinámica de mensajes en pantalla (`#mensaje`) para confirmar cambios
-- 🧪 Protección contra errores comunes (`props === null`, nodos inválidos, contenedores ausentes)
-- 🔐 Validación de existencia del contenedor antes de renderizar
-- 🧱 Compatible con renderizado modular y extensible para futuras mejoras
+Todas las modificaciones importantes documentadas por versión.
 
 ---
 
-### v1.1.0 — Versión clásica con `createElement` y eventos
+## [1.1.0] — 2025-10-06
 
-- ✅ Componente funcional con `reactv.defineFunctional`
-- 💾 Persistencia básica con `loadState` y `saveState`
-- 📡 Emisión de eventos `contador:cambio`
-- 🧩 Estilos encapsulados con `applyScopedStyle`
-- 🧪 Corrección de `setState` en el logger para evitar mutaciones directas
+### ✨ Features
+
+- Integración completa del sistema Virtual DOM:
+  - `h()` para crear VNodes
+  - `diff()` para comparar VNodes
+  - `patch()` para aplicar actualizaciones al DOM real
+  - `renderVNode()` para convertir VNode en elementos reales
+- Modificación de `Componente.render()` para usar Virtual DOM
+- Exposición pública de `h`, `diff`, `patch`, `renderVNode` como parte del API
+- Compatibilidad con JSX vía `reactv.jsx`
+
+### 🧠 Mejoras internas
+
+- Renderizado eficiente sin reemplazo completo del DOM
+- Trazabilidad de cambios entre estados virtuales
+- Preparación para slots, transitions y plugins visuales
 
 ---
 
-### v1.0.0 — Versión inicial
+## [1.0.0] — 2025-10-01
 
-- 🧮 Contador funcional con incremento, decremento y reset
-- 💾 Guardado en `localStorage` bajo la clave `contador_persistente`
-- 📡 Emisión de eventos para sincronización entre componentes
-- 📜 Logger de eventos que escucha `contador:cambio` y muestra historial
+### ✨ Features
+
+- Clase `reactv` autoejecutable con API modular
+- Sistema de eventos (`emit`, `on`)
+- Context API (`createContext`, `useContext`)
+- Plugin registry (`usePlugin`)
+- Hooks: `useState`, `useEffect`, `useMemo`
+- JSX support: `jsx()`, `createElement()`, `createFragment()`
+- Scoped styles: `applyScopedStyle()`
+- Componentes funcionales: `defineFunctional()`
+- Clase `Componente` con `setState`, `template`, `render`, `onMount`, `onUpdate`
+- Reactive store con `Subject`, `Observer`, `createReactiveState`
+- Persistencia: `saveState`, `loadState`, `snapshotState`
+- Suspense: `suspense(loaderFn, { fallback })`
+- Devtools: `debug()`
+- Test mode toggle: `testMode.enable()`, `testMode.disable()`
 
 ---
 ## 📦 Instalación
 
 ```bash
 http://cdn.underdevelopment.work/generaljs/reactive.general.min.js
+```
+
+## Ejemplo de Uso
+```js
+class Counter extends reactv.Componente {
+  template(state) {
+    return reactv.h('button', {
+      onclick: () => this.setState({ count: state.count + 1 })
+    }, `Count: ${state.count}`);
+  }
+
+  onMount() {
+    this.setState({ count: 0 });
+  }
+}
+```

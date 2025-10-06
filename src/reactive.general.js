@@ -189,12 +189,98 @@ window.reactv = (() => {
       this._observers.forEach(observer => observer.notify(data));
     }
   }
+// 🧠 Virtual DOM
+
+function h(tag, props = {}, ...children) {
+  return { tag, props, children: children.flat() };
+}
+
+function changed(a, b) {
+  return typeof a !== typeof b ||
+         (typeof a === 'string' || typeof a === 'number') && a !== b ||
+         a.tag !== b.tag;
+}
+
+function diff(oldVNode, newVNode) {
+  if (!oldVNode) return { type: 'CREATE', newVNode };
+  if (!newVNode) return { type: 'REMOVE' };
+  if (changed(oldVNode, newVNode)) return { type: 'REPLACE', newVNode };
+
+  return {
+    type: 'UPDATE',
+    props: diffProps(oldVNode.props, newVNode.props),
+    children: diffChildren(oldVNode.children, newVNode.children)
+  };
+}
+
+function diffProps(oldProps = {}, newProps = {}) {
+  const patches = {};
+  const allKeys = new Set([...Object.keys(oldProps), ...Object.keys(newProps)]);
+  allKeys.forEach(key => {
+    if (oldProps[key] !== newProps[key]) patches[key] = newProps[key];
+  });
+  return patches;
+}
+
+function diffChildren(oldChildren = [], newChildren = []) {
+  const patches = [];
+  const maxLen = Math.max(oldChildren.length, newChildren.length);
+  for (let i = 0; i < maxLen; i++) {
+    patches[i] = diff(oldChildren[i], newChildren[i]);
+  }
+  return patches;
+}
+
+function renderVNode(vnode) {
+  if (typeof vnode === 'string' || typeof vnode === 'number') {
+    return document.createTextNode(String(vnode));
+  }
+
+  const el = document.createElement(vnode.tag);
+  for (const [key, value] of Object.entries(vnode.props || {})) {
+    if (key.startsWith('on') && typeof value === 'function') {
+      el.addEventListener(key.slice(2).toLowerCase(), value);
+    } else {
+      el.setAttribute(key, value);
+    }
+  }
+
+  vnode.children.forEach(child => el.appendChild(renderVNode(child)));
+  return el;
+}
+
+function patch(container, diff, index = 0) {
+  const el = container.childNodes[index];
+
+  switch (diff.type) {
+    case 'CREATE':
+      container.appendChild(renderVNode(diff.newVNode));
+      break;
+    case 'REMOVE':
+      if (el) container.removeChild(el);
+      break;
+    case 'REPLACE':
+      container.replaceChild(renderVNode(diff.newVNode), el);
+      break;
+    case 'UPDATE':
+      for (const [key, value] of Object.entries(diff.props)) {
+        if (key.startsWith('on') && typeof value === 'function') {
+          el.addEventListener(key.slice(2).toLowerCase(), value);
+        } else {
+          el.setAttribute(key, value);
+        }
+      }
+      diff.children.forEach((childDiff, i) => patch(el, childDiff, i));
+      break;
+  }
+}
 
   class Componente {
     constructor(props = {}, container = null) {
       this.props = props;
       this._estado = {};
       this.container = container;
+      this._vnode = null;
       this.onMount();
     }
 
@@ -217,8 +303,10 @@ window.reactv = (() => {
 
     render() {
       if (!this.container) return;
-      const element = this.template(this._estado, this.props);
-      render_int(element, this.container);
+      const newVNode = this.template(this._estado, this.props);
+      const delta = diff(this._vnode, newVNode);
+      patch(this.container, delta);
+      this._vnode = newVNode;
     }
 
     onMount() {}
@@ -253,6 +341,10 @@ window.reactv = (() => {
     suspense,
     emit,
     on,
+    h,
+    diff,
+    patch,
+    renderVNode,
     getState: () => store.getState(),
     setState: valor => {
       store.setState(valor);
